@@ -4,9 +4,8 @@ from pathlib import Path
 
 
 
-
-
 def copy_directory_contents(src: str, dst: str) -> None:
+    
     src = os.path.abspath(os.path.expanduser(src))
     dst = os.path.abspath(os.path.expanduser(dst))
 
@@ -42,4 +41,8 @@ def copy_directory_contents(src: str, dst: str) -> None:
     print("Copy complete!")
 
 if __name__ == "__main__":
-    copy_directory_contents("static", "public")
+    base_dir = os.path.expanduser("~/workspace/github.com/Rauguial/Static_Site_Gen")
+    copy_directory_contents(
+        os.path.join(base_dir, "static"),
+        os.path.join(base_dir, "public")
+    )
