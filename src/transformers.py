@@ -1,3 +1,4 @@
+import re
 from textnode import *
 from htmlnode import *
 
@@ -42,4 +43,60 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
                 new_nodes.append(TextNode(part, text_type))
     return new_nodes
     
+
+def extract_markdown_images(text):
+    find_image = re.findall(r"!\[([^\[\]]*)\]\(([^\(\)]*)\)", text)
+    return find_image
+
+def extract_markdown_links(text):
+    find_link = re.findall(r"(?<!!)\[([^\[\]]*)\]\(([^\(\)]*)\)", text)
+    return find_link
+
+def split_nodes_image(old_nodes):
+    new_nodes = []
+    for node in old_nodes:
+        if node.text_type != TextType.TEXT: #Only split TEXT nodes
+            new_nodes.append(node)
+            continue
+        images = extract_markdown_images(node.text) #Extract images
+        if not images: #If no image, keep node
+            new_nodes.append(node)
+            continue
+        text = node.text
+        for alt_text, img_url in images:
+            sections = text.split(f"![{alt_text}]({img_url})", 1) #Split once
+            if sections[0]: #Add preceding text if not empty
+                new_nodes.append(TextNode(sections[0], TextType.TEXT))
+            new_nodes.append(TextNode(alt_text, TextType.IMAGE, img_url)) #Add image
+            text = sections[1] if len(sections) > 1 else ""  #Remaining text
+        
+        if text: #Add remaining text if not emtpy
+            new_nodes.append(TextNode(text, TextType.TEXT))
+    return new_nodes
+        
+def split_nodes_link(old_nodes):
+    new_nodes = []
+    for node in old_nodes:
+        if node.text_type != TextType.TEXT: #Only split TEXT nodes
+            new_nodes.append(node)
+            continue
+        links = extract_markdown_links(node.text) #Extract links
+        if not links: #If no link, keep node
+            new_nodes.append(node)
+            continue
+        text = node.text
+        for title, link_url in links:
+            sections = text.split(f"[{title}]({link_url})", 1) #Split once
+            if sections[0]: #Add preceding text if not empty
+                new_nodes.append(TextNode(sections[0], TextType.TEXT))
+            new_nodes.append(TextNode(title, TextType.LINK, link_url)) #Add links
+            text = sections[1] if len(sections) > 1 else ""  #Remaining text
+        
+        if text: #Add remaining text if not emtpy
+            new_nodes.append(TextNode(text, TextType.TEXT))
+    return new_nodes
+
+
+
+
 
