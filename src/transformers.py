@@ -1,6 +1,7 @@
 import re
 from textnode import *
 from htmlnode import *
+from blocktype import BlockType
 
 def text_node_to_html_node(text_node):
     if not isinstance(text_node, TextNode):
@@ -120,14 +121,57 @@ def markdown_to_blocks(markdown):
     return blocks
     
 
-md = """
-This is **bolded** paragraph
+def block_to_block_type(block: str) -> BlockType:
+    if re.match(r"^#{1,6} ", block):
+        return BlockType.HEADING
+    if block.startswith("```") and block.endswith("```"):
+        return BlockType.CODE
+    if all(line.startswith(">") for line in block.split("\n")):
+        return BlockType.QUOTE
+    if all(line.startswith("- ") for line in block.split("\n")):
+        return BlockType.UNORDERED_LIST
+    lines = block.split("\n")
+    if all(re.match(rf"^{i+1}\. ", line) for i, line in enumerate(lines)):
+        return BlockType.ORDERED_LIST
+    return BlockType.PARAGRAPH
 
-This is another paragraph with _italic_ text and `code` here
-This is the same paragraph on a new line
+def markdown_to_html_node(markdown):
+    blocks = markdown_to_blocks(markdown)
+    children = []
+    for block in blocks:
+        block_type = block_to_block_type(block)
 
-- This is a list
-- with items
-"""
+        match block_type:
+            case BlockType.HEADING:
+                level = block.count("#") #Count number of #
+                text = block[level + 1:].strip() #Remove the # and space
+                children.append(ParentNode(tag=f"h{level}", children=text_to_children(text)))
 
-print(markdown_to_blocks(md))
+            case BlockType.CODE:
+                code_lines = block.split("\n")[1:-1]
+                code_text = "\n".join(code_lines) + "\n"
+                code_node = ParentNode(tag="code", children=[LeafNode(None, code_text)])
+                pre_node = ParentNode(tag="pre", children=[code_node])
+                children.append(pre_node)
+            
+            case BlockType.QUOTE:
+                quote_text = "\n".join(line[2:] for line in block.split("\n"))
+                children.append(ParentNode(tag="blockquote", children=text_to_children(quote_text)))
+
+            case BlockType.UNORDERED_LIST:
+                list_items = [ParentNode(tag="li", children=text_to_children(line[2:])) for line in block.split("\n")]
+                children.append(ParentNode(tag="ul", children=list_items))
+
+            case BlockType.ORDERED_LIST:
+                list_items = [ParentNode(tag="li", children=text_to_children(line[3:])) for line in block.split("\n")]
+                children.append(ParentNode(tag="ol", children=list_items))
+
+            case BlockType.PARAGRAPH:
+                cleaned_text = " ".join(line.strip() for line in block.split())
+                children.append(ParentNode(tag="p", children=text_to_children(cleaned_text)))
+        
+    return ParentNode(tag="div", children=children)
+
+def text_to_children(text):
+    text_nodes = text_to_textnodes(text)
+    return [text_node_to_html_node(node) for node in text_nodes]
