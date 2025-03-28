@@ -110,3 +110,24 @@ def text_to_textnodes(text):
     return nodes
 
 
+def markdown_to_blocks(markdown):
+    blocks = []
+    for block in markdown.split("\n\n"):
+        block = block.strip()
+        if block:
+            cleaned_lines = [line.strip() for line in block.split("\n")]
+            blocks.append("\n".join(cleaned_lines))
+    return blocks
+    
+
+md = """
+This is **bolded** paragraph
+
+This is another paragraph with _italic_ text and `code` here
+This is the same paragraph on a new line
+
+- This is a list
+- with items
+"""
+
+print(markdown_to_blocks(md))
