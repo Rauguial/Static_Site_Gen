@@ -2,7 +2,7 @@ import os
 import shutil
 import sys
 from pathlib import Path
-from transformers import generate_page, generate_pages_recursive
+from transformers import generate_pages_recursive
 
 
 def copy_directory_contents(src: str, dst: str) -> None:
