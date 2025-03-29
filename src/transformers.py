@@ -198,6 +198,14 @@ def generate_page(from_path, template_path, dest_path, base_path="/"): #added ba
     print(f"DEBUG - Destination path: {dest_path}")
     print(f"Generating page from {from_path} to {dest_path} using {template_path}")
 
+
+    # Convert paths to strings if they're Path objects
+    from_path = str(from_path)
+    template_path = str(template_path)
+    dest_path = str(dest_path)
+    #new above
+
+
     with open(from_path, "r") as md_file:
         markdown = md_file.read()
 
@@ -206,14 +214,26 @@ def generate_page(from_path, template_path, dest_path, base_path="/"): #added ba
     
     html_content = markdown_to_html_node(markdown).to_html()
 
-    html_content = re.sub(r'<a href="([^"]*)"><', r'<a href="\1">', html_content) #New cleanup step
 
-    title = extract_title(markdown) #moved up
 
-    #new below
-    html_content = html_content.replace('href="/', f'href="{base_path}').replace('src="/', f'src="{base_path}')
+    # Handle paths based on destination
+    if "blog/" in dest_path:
+        # Blog posts need different relative paths
+        html_content = html_content.replace('src="/Static_Site_Gen/images/', 'src="../../images/')
+        html_content = html_content.replace('href="/Static_Site_Gen/"', 'href="../../index.html"')
+    else:
+        # Root-level pages
+        html_content = html_content.replace('src="/Static_Site_Gen/images/', 'src="images/')
+        html_content = html_content.replace('href="/Static_Site_Gen/"', 'href="index.html"')
+    
+    # Convert .md links to .html
+    html_content = html_content.replace('.md"', '.html"')
+
+
+
+    title = extract_title(markdown) 
     full_html = template.replace("{{ Title }}", title).replace("{{ Content }}", html_content) 
-    #
+    
    
 
     dest_dir = os.path.dirname(dest_path)
