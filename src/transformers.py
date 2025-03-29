@@ -19,6 +19,8 @@ def text_node_to_html_node(text_node):
             return LeafNode("i", text_node.text)
         case TextType.CODE:
             return LeafNode("code", text_node.text)
+        case TextType.IMAGE:
+            return LeafNode("img", "", {"src": text_node.url, "alt": text_node.text})
         case TextType.LINK:
             if not text_node.url:
                 raise ValueError("Link TextNode must have URL")
@@ -192,6 +194,7 @@ def extract_title(markdown):
 
 
 def generate_page(from_path, template_path, dest_path):
+    print(f"DEBUG - Destination path: {dest_path}")
     print(f"Generating page from {from_path} to {dest_path} using {template_path}")
 
     with open(from_path, "r") as md_file:
@@ -211,4 +214,4 @@ def generate_page(from_path, template_path, dest_path):
 
     with open(dest_path, "w") as html_file:
         html_file.write(full_html)
-               
+    print(f"DEBUG - Wrote HTML to: {os.path.abspath(dest_path)}")
