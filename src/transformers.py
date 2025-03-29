@@ -5,6 +5,7 @@ from pathlib import Path
 from textnode import *
 from htmlnode import *
 from blocktype import BlockType
+from main import base_path
 
 def text_node_to_html_node(text_node):
     if not isinstance(text_node, TextNode):
@@ -193,7 +194,7 @@ def extract_title(markdown):
         
 
 
-def generate_page(from_path, template_path, dest_path):
+def generate_page(from_path, template_path, dest_path, base_path="/"): #added base_path
     print(f"DEBUG - Destination path: {dest_path}")
     print(f"Generating page from {from_path} to {dest_path} using {template_path}")
 
@@ -205,9 +206,13 @@ def generate_page(from_path, template_path, dest_path):
     
     html_content = markdown_to_html_node(markdown).to_html()
 
-    title = extract_title(markdown)
+    title = extract_title(markdown) #moved up
 
-    full_html = template.replace("{{ Title }}", title).replace("{{ Content }}", html_content)
+    #new below
+    html_content = html_content.replace('href="/', f'href="{base_path}').replace('src="/', f'src="{base_path}')
+    full_html = template.replace("{{ Title }}", title).replace("{{ Content }}", html_content) 
+    #
+   
 
     dest_dir = os.path.dirname(dest_path)
     os.makedirs(dest_dir, exist_ok=True)
@@ -216,7 +221,7 @@ def generate_page(from_path, template_path, dest_path):
         html_file.write(full_html)
     print(f"DEBUG - Wrote HTML to: {os.path.abspath(dest_path)}")
 
-def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
+def generate_pages_recursive(dir_path_content, template_path, dest_dir_path, base_path="/"): #added base_path
     content_dir = Path(dir_path_content)
     dest_dir = Path(dest_dir_path)
 
@@ -224,8 +229,8 @@ def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
         if item.is_dir():
             new_dest = dest_dir / item.name
             new_dest.mkdir(exist_ok=True)
-            generate_pages_recursive(item, template_path, new_dest)
+            generate_pages_recursive(item, template_path, new_dest, base_path) #added base_path
         
         elif item.suffix == ".md":
             dest_path = dest_dir / f"{item.stem}.html"
-            generate_page(item, template_path, dest_path)
+            generate_page(item, template_path, dest_path, base_path) #added base_path

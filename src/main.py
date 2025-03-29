@@ -1,5 +1,6 @@
 import os
 import shutil
+import sys
 from pathlib import Path
 from transformers import generate_page, generate_pages_recursive
 
@@ -42,10 +43,11 @@ def copy_directory_contents(src: str, dst: str) -> None:
 
 def main():
     project_root = Path(__file__).parent.parent
+    base_path = sys.argv[1] if len(sys.argv) > 1 else "/" #new
 
-    copy_directory_contents(str(project_root / "static"), str(project_root / "public"))
+    copy_directory_contents(str(project_root / "static"), str(project_root / "docs")) #changed from public to docs
 
-    generate_pages_recursive(str(project_root / "content"), str(project_root / "template.html"), str(project_root / "public"))
+    generate_pages_recursive(str(project_root / "content"), str(project_root / "template.html"), str(project_root / "docs"), base_path) #changed from public to docs, added base_path
 
 
 
