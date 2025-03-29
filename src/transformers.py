@@ -205,7 +205,6 @@ def generate_page(from_path, template_path, dest_path, base_path="/"): #added ba
     dest_path = str(dest_path)
     #new above
 
-
     with open(from_path, "r") as md_file:
         markdown = md_file.read()
 
@@ -214,21 +213,22 @@ def generate_page(from_path, template_path, dest_path, base_path="/"): #added ba
     
     html_content = markdown_to_html_node(markdown).to_html()
 
-
+    # Ensure base_path ends with a slash ----- NEW
+    if not base_path.endswith('/'):
+        base_path += '/'
 
     # Handle paths based on destination
     if "blog/" in dest_path:
         # Blog posts need different relative paths
-        html_content = html_content.replace('src="/Static_Site_Gen/images/', 'src="../../images/')
-        html_content = html_content.replace('href="/Static_Site_Gen/"', 'href="../../index.html"')
+        html_content = html_content.replace('src="/Static_Site_Gen/images/', 'src="{base_path}../../images/') #added base_path --- THESE ARE NEW
+        html_content = html_content.replace('href="/Static_Site_Gen/"', 'href="{base_path}../../index.html"') #added base_path
     else:
         # Root-level pages
-        html_content = html_content.replace('src="/Static_Site_Gen/images/', 'src="images/')
-        html_content = html_content.replace('href="/Static_Site_Gen/"', 'href="index.html"')
+        html_content = html_content.replace('src="/Static_Site_Gen/images/', 'src="{base_path}images/') #added base_path
+        html_content = html_content.replace('href="/Static_Site_Gen/"', 'href="{base_path}index.html"') #added base_path
     
     # Convert .md links to .html
     html_content = html_content.replace('.md"', '.html"')
-
 
 
     title = extract_title(markdown) 
