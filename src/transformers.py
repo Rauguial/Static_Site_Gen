@@ -23,7 +23,7 @@ def text_node_to_html_node(text_node):
         case TextType.IMAGE:
             return LeafNode("img", " ", {"src": text_node.url, "alt": text_node.text})
         case TextType.LINK:
-            if not text_node.url:
+            if not text_node.url or not text_node.text:
                 raise ValueError("Link TextNode must have URL")
             return LeafNode("a", text_node.text, {"href": text_node.url})
         case _:
@@ -205,6 +205,8 @@ def generate_page(from_path, template_path, dest_path, base_path="/"): #added ba
         template = template_file.read()
     
     html_content = markdown_to_html_node(markdown).to_html()
+
+    html_content = re.sub(r'<a href="([^"]*)"><', r'<a href="\1">', html_content) #New cleanup step
 
     title = extract_title(markdown) #moved up
 
