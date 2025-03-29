@@ -1,5 +1,5 @@
 import unittest
-from transformers import text_node_to_html_node, split_nodes_delimiter, extract_markdown_images, extract_markdown_links, split_nodes_image, split_nodes_link, text_to_textnodes, markdown_to_blocks, block_to_block_type, markdown_to_html_node
+from transformers import text_node_to_html_node, split_nodes_delimiter, extract_markdown_images, extract_markdown_links, split_nodes_image, split_nodes_link, text_to_textnodes, markdown_to_blocks, block_to_block_type, markdown_to_html_node, extract_title
 from textnode import TextNode, TextType
 from htmlnode import *
 from blocktype import BlockType
@@ -181,6 +181,30 @@ class Test_transformer(unittest.TestCase):
             html,
             "<div><pre><code>This is text that _should_ remain\nthe **same** even with inline stuff\n</code></pre></div>",
         )
+
+
+    def test_extract_title(self):
+        md = """
+        # Tolkien Fan Club
+
+        ![JRR Tolkien sitting](/images/tolkien.png)
+
+        Here's the deal, **I like Tolkien**.
+
+
+        ## Blog posts
+
+        - [Why Glorfindel is More Impressive than Legolas](/blog/glorfindel)
+        - [Why Tom Bombadil Was a Mistake](/blog/tom)
+        - [The Unparalleled Majesty of "The Lord of the Rings"](/blog/majesty)
+
+        ## Reasons I like Tolkien
+
+        """
+        title = extract_title(md)
+        self.assertEqual(title, "Tolkien Fan Club")
+
+
 
 if __name__ == "__main__":
     unittest.main()

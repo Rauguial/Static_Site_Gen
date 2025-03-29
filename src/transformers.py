@@ -1,4 +1,7 @@
 import re
+import os
+import shutil
+from pathlib import Path
 from textnode import *
 from htmlnode import *
 from blocktype import BlockType
@@ -175,3 +178,37 @@ def markdown_to_html_node(markdown):
 def text_to_children(text):
     text_nodes = text_to_textnodes(text)
     return [text_node_to_html_node(node) for node in text_nodes]
+
+
+
+def extract_title(markdown):
+    blocks = markdown_to_blocks(markdown)
+    for block in blocks:
+        if re.match(r"^#{1} ", block):
+            return block[1:].strip()
+        else:
+            raise Exception("No h1 header.")
+        
+
+
+def generate_page(from_path, template_path, dest_path):
+    print(f"Generating page from {from_path} to {dest_path} using {template_path}")
+
+    with open(from_path, "r") as md_file:
+        markdown = md_file.read()
+
+    with open(template_path, "r") as template_file:
+        template = template_file.read()
+    
+    html_content = markdown_to_html_node(markdown).to_html()
+
+    title = extract_title(markdown)
+
+    full_html = template.replace("{{ Title }}", title).replace("{{ Content }}", html_content)
+
+    dest_dir = os.path.dirname(dest_path)
+    os.makedirs(dest_dir, exist_ok=True)
+
+    with open(dest_path, "w") as html_file:
+        html_file.write(full_html)
+               

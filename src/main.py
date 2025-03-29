@@ -1,7 +1,7 @@
 import os
 import shutil
 from pathlib import Path
-
+from transformers import generate_page
 
 
 def copy_directory_contents(src: str, dst: str) -> None:
@@ -40,9 +40,17 @@ def copy_directory_contents(src: str, dst: str) -> None:
     _copy_recursive(src, dst)
     print("Copy complete!")
 
+def main():
+    project_root = Path(__file__).parent.parent
+
+    copy_directory_contents(str(project_root / "static"), str(project_root / "public"))
+
+    generate_page(str(project_root / "content" / "index.md"), str(project_root / "template.html"), str(project_root / "public" / "index.html"))
+
+
+
+
+
+
 if __name__ == "__main__":
-    base_dir = os.path.expanduser("~/workspace/github.com/Rauguial/Static_Site_Gen")
-    copy_directory_contents(
-        os.path.join(base_dir, "static"),
-        os.path.join(base_dir, "public")
-    )
+    main()
