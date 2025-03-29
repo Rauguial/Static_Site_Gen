@@ -1,7 +1,7 @@
 import os
 import shutil
 from pathlib import Path
-from transformers import generate_page
+from transformers import generate_page, generate_pages_recursive
 
 
 def copy_directory_contents(src: str, dst: str) -> None:
@@ -45,7 +45,7 @@ def main():
 
     copy_directory_contents(str(project_root / "static"), str(project_root / "public"))
 
-    generate_page(str(project_root / "content" / "index.md"), str(project_root / "template.html"), str(project_root / "public" / "index.html"))
+    generate_pages_recursive(str(project_root / "content"), str(project_root / "template.html"), str(project_root / "public"))
 
 
 

@@ -215,3 +215,17 @@ def generate_page(from_path, template_path, dest_path):
     with open(dest_path, "w") as html_file:
         html_file.write(full_html)
     print(f"DEBUG - Wrote HTML to: {os.path.abspath(dest_path)}")
+
+def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
+    content_dir = Path(dir_path_content)
+    dest_dir = Path(dest_dir_path)
+
+    for item in content_dir.iterdir():
+        if item.is_dir():
+            new_dest = dest_dir / item.name
+            new_dest.mkdir(exist_ok=True)
+            generate_pages_recursive(item, template_path, new_dest)
+        
+        elif item.suffix == ".md":
+            dest_path = dest_dir / f"{item.stem}.html"
+            generate_page(item, template_path, dest_path)
