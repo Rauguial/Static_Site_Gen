@@ -45,11 +45,23 @@ def main():
     project_root = Path(__file__).parent.parent
     base_path = sys.argv[1] if len(sys.argv) > 1 else "/" #new
 
+    # Convert template path to absolute path
+    template_path = str(project_root / "template.html")                    #--
+    print(f"DEBUG - Template absolute path: {template_path}")  # Verification ---- NEW
+    print(f"DEBUG - Template exists: {os.path.exists(template_path)}")     #--
+    if not os.path.exists(template_path):                                  #--
+        raise FileNotFoundError(f"Template not found at: {template_path}") #--
+
     copy_directory_contents(str(project_root / "static"), str(project_root / "docs")) #changed from public to docs
 
-    generate_pages_recursive(str(project_root / "content"), str(project_root / "template.html"), str(project_root / "docs"), base_path) #changed from public to docs, added base_path
+    #generate_pages_recursive(str(project_root / "content"), str(project_root / "template.html"), str(project_root / "docs"), base_path) #changed from public to docs, added base_path
 
-
+    generate_pages_recursive(
+        str(project_root / "content"), 
+        template_path,  # Using the absolute path
+        str(project_root / "docs"), 
+        base_path
+    )
 
 if __name__ == "__main__":
     main()

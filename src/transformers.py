@@ -197,7 +197,11 @@ def extract_title(markdown):
 def generate_page(from_path, template_path, dest_path, base_path="/"): #added base_path
     print(f"DEBUG - Destination path: {dest_path}")
     print(f"Generating page from {from_path} to {dest_path} using {template_path}")
-
+    print(f"DEBUG - Template path: {template_path}")
+    print(f"DEBUG - Template exists: {os.path.exists(template_path)}")
+    if os.path.exists(template_path):
+        with open(template_path, 'r') as f:
+            print(f"DEBUG - Template content:\n{f.read()}")
 
     # Convert paths to strings if they're Path objects
     from_path = str(from_path)
@@ -210,31 +214,53 @@ def generate_page(from_path, template_path, dest_path, base_path="/"): #added ba
 
     with open(template_path, "r") as template_file:
         template = template_file.read()
+        
     
-    html_content = markdown_to_html_node(markdown).to_html()
+    # Verify placeholders (update to match your template exactly)
+    required_placeholders = ["{{ Title }}", "{{ Content }}", "{{CSS_PATH}}"]
+    for placeholder in required_placeholders:
+        if placeholder not in template:
+            print(f"ERROR: Missing required placeholder {placeholder} in template!")
 
-    # Ensure base_path ends with a slash ----- NEW
-    if not base_path.endswith('/'):
+
+    if not base_path or base_path == '""': # --- new
+        base_path = "/"  # GitHub Pages case
+    elif not base_path.endswith('/'):
         base_path += '/'
 
+    # Handle CSS path replacement ----------NEW
+    css_path = f"{base_path}index.css".replace("//", "/")  # Fix double slashes
+    full_html = template.replace("{{CSS_PATH}}", css_path)
+    
+    html_content = markdown_to_html_node(markdown).to_html() #---New
+    title = extract_title(markdown) #------------New
+
+    
     # Handle paths based on destination
     if "blog/" in dest_path:
         # Blog posts need different relative paths
-        html_content = html_content.replace('src="/Static_Site_Gen/images/', 'src="{base_path}../../images/') #added base_path --- THESE ARE NEW
-        html_content = html_content.replace('href="/Static_Site_Gen/"', 'href="{base_path}../../index.html"') #added base_path
+        html_content = html_content.replace('src="/Static_Site_Gen/images/', f'src="{base_path}../../images/') #added base_path --- THESE ARE NEW
+        html_content = html_content.replace('href="/Static_Site_Gen/"', f'href="{base_path}../../index.html"') #added base_path
     else:
         # Root-level pages
-        html_content = html_content.replace('src="/Static_Site_Gen/images/', 'src="{base_path}images/') #added base_path
-        html_content = html_content.replace('href="/Static_Site_Gen/"', 'href="{base_path}index.html"') #added base_path
+        html_content = html_content.replace('src="/Static_Site_Gen/images/', f'src="{base_path}images/') #added base_path
+        html_content = html_content.replace('href="/Static_Site_Gen/"', f'href="{base_path}index.html"') #added base_path
     
+
     # Convert .md links to .html
     html_content = html_content.replace('.md"', '.html"')
 
 
-    title = extract_title(markdown) 
-    full_html = template.replace("{{ Title }}", title).replace("{{ Content }}", html_content) 
-    
-   
+    # Process template  ---------------------------NEW
+    full_html = template\
+        .replace("{{CSS_PATH}}", f"{base_path}index.css")\
+        .replace("{{ Title }}", title)\
+        .replace("{{ Content }}", html_content)
+                    
+
+    print(f"DEBUG - Final HTML header:\n{full_html[:200]}")
+    print(f"DEBUG - CSS path: {base_path}index.css")
+
 
     dest_dir = os.path.dirname(dest_path)
     os.makedirs(dest_dir, exist_ok=True)
